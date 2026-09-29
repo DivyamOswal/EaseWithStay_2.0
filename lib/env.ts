@@ -7,6 +7,7 @@ const serverSchema = z.object({
 
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid Postgres URL'),
   DIRECT_DATABASE_URL: z.string().url('DIRECT_DATABASE_URL must be a valid Postgres URL'),
+  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 chars'),
 
   IMAGEKIT_PUBLIC_KEY: z.string().min(1),
   IMAGEKIT_PRIVATE_KEY: z.string().min(1),
