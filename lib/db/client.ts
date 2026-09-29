@@ -8,10 +8,7 @@ const createPrismaClient = () => {
   const adapter = new PrismaNeon({ connectionString: env.DATABASE_URL });
   return new PrismaClient({
     adapter,
-    log:
-      env.NODE_ENV === 'development'
-        ? ['query', 'error', 'warn']
-        : ['error'],
+    log: env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 };
 
