@@ -22,6 +22,7 @@
     "@imagekit/next": "^2.1.6",
     "@imagekit/nodejs": "^7.12.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@prisma/adapter-neon": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@sentry/nextjs": "^10.75.0",
     "argon2": "^0.45.1",
