@@ -1,19 +1,46 @@
 import Link from 'next/link';
 
-export function SiteFooter() {
-  const columns = [
-    {
-      title: 'Product',
-      links: ['AI Trip Planner', 'Hotels', 'Flights', 'Activities'],
-    },
-    { title: 'Company', links: ['About', 'Careers', 'Blog', 'Press'] },
-    {
-      title: 'Support',
-      links: ['Help center', 'Cancellations & refunds', 'Contact us', 'Trust & safety'],
-    },
-    { title: 'Legal', links: ['Terms of service', 'Privacy policy', 'Payment terms'] },
-  ];
+type FooterLink = { label: string; href: string };
 
+const columns: { title: string; links: FooterLink[] }[] = [
+  {
+    title: 'Product',
+    links: [
+      { label: 'AI Trip Planner', href: '/planner' },
+      { label: 'Destinations', href: '/destinations' },
+      { label: 'Pricing', href: '/pricing' },
+      { label: 'How it works', href: '/how-it-works' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'About', href: '/about' },
+      { label: 'Contact', href: '/contact' },
+      { label: 'Careers', href: '#' },
+      { label: 'Press', href: '#' },
+    ],
+  },
+  {
+    title: 'Support',
+    links: [
+      { label: 'Help center', href: '/help' },
+      { label: 'Cancellations & refunds', href: '/help' },
+      { label: 'Contact us', href: '/contact' },
+      { label: 'Trust & safety', href: '/help' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { label: 'Terms of service', href: '/terms' },
+      { label: 'Privacy policy', href: '/privacy' },
+      { label: 'Payment terms', href: '/terms' },
+    ],
+  },
+];
+
+export function SiteFooter() {
   return (
     <footer className="bg-[var(--color-pine)] text-[var(--color-sand)]">
       <div className="grid grid-cols-1 gap-8 px-12 py-14 md:grid-cols-[1.4fr_repeat(4,1fr)]">
@@ -39,15 +66,25 @@ export function SiteFooter() {
             <h5 className="mb-3 text-xs font-bold tracking-wide text-[var(--color-brass)]">
               {col.title}
             </h5>
-            {col.links.map((label) => (
-              <Link
-                key={label}
-                href="#"
-                className="mb-2 block text-sm text-[#CFE0DE] hover:text-white"
-              >
-                {label}
-              </Link>
-            ))}
+            {col.links.map((link) =>
+              link.href === '#' ? (
+                <span
+                  key={link.label}
+                  className="mb-2 block cursor-not-allowed text-sm text-[#7A8F8C]"
+                  title="Coming soon"
+                >
+                  {link.label}
+                </span>
+              ) : (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="mb-2 block text-sm text-[#CFE0DE] transition hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              ),
+            )}
           </div>
         ))}
       </div>
@@ -55,15 +92,30 @@ export function SiteFooter() {
       <div className="flex flex-col items-start justify-between gap-3 border-t border-white/10 px-12 py-5 text-xs text-[#8FA8A5] md:flex-row md:items-center">
         <span>© 2026 EaseWithStay. All prices shown in INR unless stated.</span>
         <div className="flex gap-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20">
+          <a
+            href="https://linkedin.com"
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 transition hover:border-white/40"
+          >
             in
-          </span>
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20">
+          </a>
+          <a
+            href="https://x.com"
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 transition hover:border-white/40"
+          >
             X
-          </span>
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20">
+          </a>
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 transition hover:border-white/40"
+          >
             ig
-          </span>
+          </a>
         </div>
       </div>
     </footer>
