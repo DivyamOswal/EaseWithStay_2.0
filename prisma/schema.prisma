@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 // ============================================================
@@ -149,15 +149,16 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  sessions      Session[]
-  travelers     Traveler[]
-  trips         Trip[]
-  bookings      Booking[]
-  conversations AIConversation[]
-  aiUsage       AIUsage[]
-  notifications Notification[]
-  auditLogs     AuditLog[]
-  preferences   SavedPreference[]
+  sessions            Session[]
+  travelers           Traveler[]
+  trips               Trip[]
+  bookings            Booking[]
+  conversations       AIConversation[]
+  aiUsage             AIUsage[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  preferences         SavedPreference[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([role])
   @@index([createdAt])
@@ -179,18 +180,32 @@ model Session {
 }
 
 model Traveler {
-  id         String   @id @default(cuid())
-  userId     String
-  fullName   String
-  dateOfBirth DateTime?
-  passportNo String?
+  id           String    @id @default(cuid())
+  userId       String
+  fullName     String
+  dateOfBirth  DateTime?
+  passportNo   String?
   relationship String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // ============================================================
@@ -245,13 +260,13 @@ model DestinationDocument {
 }
 
 model DocumentChunk {
-  id         String   @id @default(cuid())
+  id         String                       @id @default(cuid())
   documentId String
   content    String
   tokenCount Int?
   order      Int
   embedding  Unsupported("vector(1536)")?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime                     @default(now())
 
   document DestinationDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
@@ -264,10 +279,10 @@ model DocumentChunk {
 // ============================================================
 
 model Hotel {
-  id            String   @id @default(cuid())
+  id            String            @id @default(cuid())
   destinationId String
   name          String
-  slug          String   @unique
+  slug          String            @unique
   starRating    Float?
   lat           Float?
   lng           Float?
@@ -276,8 +291,8 @@ model Hotel {
   imageId       String?
   description   String?
   status        DestinationStatus @default(DRAFT)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
   destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
   rooms       Room[]
@@ -296,7 +311,7 @@ model Room {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  hotel  Hotel         @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  hotel  Hotel        @relation(fields: [hotelId], references: [id], onDelete: Cascade)
   offers HotelOffer[]
 
   @@index([hotelId])
@@ -323,7 +338,7 @@ model HotelOffer {
 }
 
 model Flight {
-  id           String @id @default(cuid())
+  id           String   @id @default(cuid())
   airline      String
   airlineCode  String
   flightNumber String
@@ -357,20 +372,20 @@ model FlightOffer {
 }
 
 model Activity {
-  id            String   @id @default(cuid())
+  id            String            @id @default(cuid())
   destinationId String
   name          String
-  slug          String   @unique
+  slug          String            @unique
   description   String?
   durationMin   Int?
   priceMinor    Int
-  currency      String   @default("INR")
+  currency      String            @default("INR")
   minAge        Int?
   tags          String[]
   imageId       String?
   status        DestinationStatus @default(DRAFT)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
   destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
 
@@ -379,7 +394,7 @@ model Activity {
 }
 
 model Restaurant {
-  id            String   @id @default(cuid())
+  id            String            @id @default(cuid())
   destinationId String
   name          String
   cuisine       String[]
@@ -390,8 +405,8 @@ model Restaurant {
   rating        Float?
   imageId       String?
   status        DestinationStatus @default(DRAFT)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
   destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
 
@@ -427,14 +442,14 @@ model Trip {
 }
 
 model TripDay {
-  id       String   @id @default(cuid())
-  tripId   String
-  dayIndex Int
-  date     DateTime?
-  title    String?
-  notes    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(cuid())
+  tripId    String
+  dayIndex  Int
+  date      DateTime?
+  title     String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   trip  Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
   items ItineraryItem[]
@@ -467,12 +482,12 @@ model ItineraryItem {
 }
 
 model SavedPreference {
-  id     String        @id @default(cuid())
-  userId String
-  key    PreferenceKey
-  value  Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String        @id @default(cuid())
+  userId    String
+  key       PreferenceKey
+  value     Json
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -485,11 +500,11 @@ model SavedPreference {
 // ============================================================
 
 model AIConversation {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
   tripId    String?
   model     String
-  startedAt DateTime @default(now())
+  startedAt DateTime  @default(now())
   endedAt   DateTime?
 
   user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -552,11 +567,11 @@ model Booking {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trip      Trip?         @relation(fields: [tripId], references: [id], onDelete: SetNull)
-  items     BookingItem[]
-  payments  Payment[]
-  refunds   Refund[]
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip     Trip?         @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  items    BookingItem[]
+  payments Payment[]
+  refunds  Refund[]
 
   @@index([userId])
   @@index([status])
@@ -565,15 +580,15 @@ model Booking {
 }
 
 model BookingItem {
-  id            String          @id @default(cuid())
-  bookingId     String
-  type          BookingItemType
-  refId         String?
-  title         String
-  snapshotJson  Json
-  priceMinor    Int
-  currency      String          @default("INR")
-  createdAt     DateTime        @default(now())
+  id           String          @id @default(cuid())
+  bookingId    String
+  type         BookingItemType
+  refId        String?
+  title        String
+  snapshotJson Json
+  priceMinor   Int
+  currency     String          @default("INR")
+  createdAt    DateTime        @default(now())
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
@@ -604,18 +619,18 @@ model Payment {
 }
 
 model Refund {
-  id           String       @id @default(cuid())
-  paymentId    String
-  bookingId    String
-  providerRef  String?
-  amountMinor  Int
-  currency     String       @default("INR")
-  reason       String?
-  status       RefundStatus @default(PENDING)
-  rawPayload   Json?
-  completedAt  DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id          String       @id @default(cuid())
+  paymentId   String
+  bookingId   String
+  providerRef String?
+  amountMinor Int
+  currency    String       @default("INR")
+  reason      String?
+  status      RefundStatus @default(PENDING)
+  rawPayload  Json?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
@@ -662,13 +677,13 @@ model AuditLog {
 }
 
 model ProviderRequest {
-  id         String       @id @default(cuid())
-  provider   ProviderType
-  endpoint   String
-  status     Int?
-  latencyMs  Int?
-  errorCode  String?
-  createdAt  DateTime     @default(now())
+  id        String       @id @default(cuid())
+  provider  ProviderType
+  endpoint  String
+  status    Int?
+  latencyMs Int?
+  errorCode String?
+  createdAt DateTime     @default(now())
 
   @@index([provider])
   @@index([createdAt])

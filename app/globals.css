@@ -23,7 +23,7 @@
   --color-canvas: #ebe7dc;
   --color-success: #3f7a56;
 
-  /* shadcn semantic overrides — mapped to EWS palette */
+  /* shadcn semantic overrides  mapped to EWS palette */
   --color-background: var(--color-sand);
   --color-foreground: var(--color-ink);
   --color-card: #ffffff;
