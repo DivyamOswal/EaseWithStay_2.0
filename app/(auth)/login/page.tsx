@@ -1,21 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@/lib/validators/auth';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const nextPath = params.get('next') ?? '/';
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
 
   async function onSubmit(data: LoginInput) {
     setError(null);
@@ -28,7 +30,11 @@ export default function LoginPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.error === 'INVALID_CREDENTIALS' ? 'Invalid email or password' : 'Login failed');
+        setError(
+          body.error === 'INVALID_CREDENTIALS'
+            ? 'Invalid email or password'
+            : 'Login failed',
+        );
         return;
       }
       router.push(nextPath);
@@ -39,40 +45,55 @@ export default function LoginPage() {
   }
 
   return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Email</label>
+        <input
+          type="email"
+          autoComplete="email"
+          {...register('email')}
+          className="w-full border rounded-lg px-3 py-2"
+        />
+        {errors.email && (
+          <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
+        )}
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Password</label>
+        <input
+          type="password"
+          autoComplete="current-password"
+          {...register('password')}
+          className="w-full border rounded-lg px-3 py-2"
+        />
+        {errors.password && (
+          <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
+        )}
+      </div>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-[#2D6CDF] text-white rounded-lg py-3 font-semibold disabled:opacity-50"
+      >
+        {loading ? 'Logging in…' : 'Log in'}
+      </button>
+    </form>
+  );
+}
+
+export default function LoginPage() {
+  return (
     <main className="mx-auto max-w-md px-6 py-20">
       <h1 className="font-serif text-3xl text-[#142B45] mb-8">Log in</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
-          <input
-            type="email"
-            autoComplete="email"
-            {...register('email')}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-          {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>}
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Password</label>
-          <input
-            type="password"
-            autoComplete="current-password"
-            {...register('password')}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-          {errors.password && <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>}
-        </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-[#2D6CDF] text-white rounded-lg py-3 font-semibold disabled:opacity-50"
-        >
-          {loading ? 'Logging in…' : 'Log in'}
-        </button>
-      </form>
+      <Suspense fallback={<p className="text-sm text-gray-500">Loading…</p>}>
+        <LoginForm />
+      </Suspense>
       <p className="mt-6 text-sm text-gray-600">
-        No account? <a href="/register" className="text-[#2D6CDF] font-semibold">Create one</a>
+        No account?{' '}
+        <a href="/register" className="text-[#2D6CDF] font-semibold">
+          Create one
+        </a>
       </p>
     </main>
   );
