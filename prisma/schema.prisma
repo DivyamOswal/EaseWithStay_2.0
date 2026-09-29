@@ -1,0 +1,675 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPPORT
+}
+
+enum DestinationStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum DocumentSourceType {
+  CSV
+  JSON
+  XLSX
+  PDF
+  TEXT
+  URL
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  INDEXED
+  FAILED
+  ARCHIVED
+}
+
+enum TripStatus {
+  DRAFT
+  PLANNING
+  READY
+  BOOKED
+  COMPLETED
+  CANCELLED
+}
+
+enum ItineraryItemType {
+  HOTEL
+  FLIGHT
+  ACTIVITY
+  RESTAURANT
+  TRANSPORT
+  NOTE
+}
+
+enum ItineraryItemSource {
+  AI
+  USER
+  PROVIDER
+}
+
+enum BookingStatus {
+  PENDING
+  PAYMENT_PENDING
+  PAID
+  CONFIRMING
+  CONFIRMED
+  PAYMENT_FAILED
+  BOOKING_FAILED
+  CANCELLED
+  REFUND_PENDING
+  REFUNDED
+}
+
+enum BookingItemType {
+  HOTEL
+  FLIGHT
+  ACTIVITY
+  TRANSFER
+  FEE
+}
+
+enum PaymentStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  PAYMENT_RECEIVED
+  PAYMENT_FAILED
+  REFUND_INITIATED
+  REFUND_COMPLETED
+  CHECKIN_REMINDER
+  PRICE_DROP
+  TRIP_REMINDER
+  SYSTEM
+}
+
+enum ProviderType {
+  HOTEL
+  FLIGHT
+  ACTIVITY
+  WEATHER
+  MAPS
+  PAYMENT
+  AI
+}
+
+enum PreferenceKey {
+  CURRENCY
+  HOME_AIRPORT
+  DIETARY
+  ACCESSIBILITY
+  PACE
+  INTERESTS
+}
+
+// ============================================================
+// IDENTITY
+// ============================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  name          String?
+  image         String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  travelers     Traveler[]
+  trips         Trip[]
+  bookings      Booking[]
+  conversations AIConversation[]
+  aiUsage       AIUsage[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  preferences   SavedPreference[]
+
+  @@index([role])
+  @@index([createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  userAgent String?
+  ip        String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Traveler {
+  id         String   @id @default(cuid())
+  userId     String
+  fullName   String
+  dateOfBirth DateTime?
+  passportNo String?
+  relationship String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================
+// TRAVEL KNOWLEDGE
+// ============================================================
+
+model Destination {
+  id          String            @id @default(cuid())
+  slug        String            @unique
+  name        String
+  country     String
+  region      String?
+  lat         Float?
+  lng         Float?
+  description String?
+  heroImageId String?
+  status      DestinationStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  hotels      Hotel[]
+  activities  Activity[]
+  restaurants Restaurant[]
+  documents   DestinationDocument[]
+  trips       Trip[]
+
+  @@index([status])
+  @@index([country])
+}
+
+model DestinationDocument {
+  id            String             @id @default(cuid())
+  destinationId String
+  title         String
+  sourceType    DocumentSourceType
+  fileId        String?
+  fileUrl       String?
+  filePath      String?
+  status        DocumentStatus     @default(PENDING)
+  version       Int                @default(1)
+  errorMessage  String?
+  publishedAt   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  destination Destination     @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  chunks      DocumentChunk[]
+
+  @@index([destinationId])
+  @@index([status])
+}
+
+model DocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String
+  content    String
+  tokenCount Int?
+  order      Int
+  embedding  Unsupported("vector(1536)")?
+  createdAt  DateTime @default(now())
+
+  document DestinationDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([order])
+}
+
+// ============================================================
+// INVENTORY
+// ============================================================
+
+model Hotel {
+  id            String   @id @default(cuid())
+  destinationId String
+  name          String
+  slug          String   @unique
+  starRating    Float?
+  lat           Float?
+  lng           Float?
+  address       String?
+  amenities     String[]
+  imageId       String?
+  description   String?
+  status        DestinationStatus @default(DRAFT)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  rooms       Room[]
+
+  @@index([destinationId])
+  @@index([status])
+}
+
+model Room {
+  id          String   @id @default(cuid())
+  hotelId     String
+  name        String
+  capacity    Int
+  beds        Int
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  hotel  Hotel         @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  offers HotelOffer[]
+
+  @@index([hotelId])
+}
+
+model HotelOffer {
+  id           String   @id @default(cuid())
+  roomId       String
+  providerId   String
+  providerName String
+  checkIn      DateTime
+  checkOut     DateTime
+  priceMinor   Int
+  currency     String   @default("INR")
+  taxesMinor   Int      @default(0)
+  available    Boolean  @default(true)
+  capturedAt   DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([checkIn, checkOut])
+  @@index([capturedAt])
+}
+
+model Flight {
+  id           String @id @default(cuid())
+  airline      String
+  airlineCode  String
+  flightNumber String
+  origin       String
+  destination  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  offers FlightOffer[]
+
+  @@index([origin, destination])
+}
+
+model FlightOffer {
+  id           String   @id @default(cuid())
+  flightId     String
+  providerId   String
+  providerName String
+  departAt     DateTime
+  arriveAt     DateTime
+  stops        Int      @default(0)
+  seatsLeft    Int?
+  priceMinor   Int
+  currency     String   @default("INR")
+  capturedAt   DateTime @default(now())
+
+  flight Flight @relation(fields: [flightId], references: [id], onDelete: Cascade)
+
+  @@index([flightId])
+  @@index([departAt])
+}
+
+model Activity {
+  id            String   @id @default(cuid())
+  destinationId String
+  name          String
+  slug          String   @unique
+  description   String?
+  durationMin   Int?
+  priceMinor    Int
+  currency      String   @default("INR")
+  minAge        Int?
+  tags          String[]
+  imageId       String?
+  status        DestinationStatus @default(DRAFT)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@index([destinationId])
+  @@index([status])
+}
+
+model Restaurant {
+  id            String   @id @default(cuid())
+  destinationId String
+  name          String
+  cuisine       String[]
+  dietary       String[]
+  lat           Float?
+  lng           Float?
+  priceLevel    Int?
+  rating        Float?
+  imageId       String?
+  status        DestinationStatus @default(DRAFT)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@index([destinationId])
+  @@index([status])
+}
+
+// ============================================================
+// PLANNING
+// ============================================================
+
+model Trip {
+  id            String     @id @default(cuid())
+  userId        String
+  destinationId String?
+  title         String
+  startDate     DateTime?
+  endDate       DateTime?
+  budgetMinor   Int?
+  currency      String     @default("INR")
+  status        TripStatus @default(DRAFT)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination   Destination?     @relation(fields: [destinationId], references: [id])
+  days          TripDay[]
+  conversations AIConversation[]
+  booking       Booking?
+
+  @@index([userId])
+  @@index([status])
+}
+
+model TripDay {
+  id       String   @id @default(cuid())
+  tripId   String
+  dayIndex Int
+  date     DateTime?
+  title    String?
+  notes    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trip  Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  items ItineraryItem[]
+
+  @@unique([tripId, dayIndex])
+  @@index([tripId])
+}
+
+model ItineraryItem {
+  id        String              @id @default(cuid())
+  tripDayId String
+  type      ItineraryItemType
+  source    ItineraryItemSource @default(AI)
+  refId     String?
+  title     String
+  notes     String?
+  startTime DateTime?
+  endTime   DateTime?
+  costMinor Int?
+  currency  String              @default("INR")
+  order     Int
+  metadata  Json?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  tripDay TripDay @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+
+  @@index([tripDayId])
+  @@index([type])
+}
+
+model SavedPreference {
+  id     String        @id @default(cuid())
+  userId String
+  key    PreferenceKey
+  value  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([userId])
+}
+
+// ============================================================
+// AI
+// ============================================================
+
+model AIConversation {
+  id        String   @id @default(cuid())
+  userId    String
+  tripId    String?
+  model     String
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip     Trip?       @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  messages AIMessage[]
+  usage    AIUsage[]
+
+  @@index([userId])
+  @@index([tripId])
+}
+
+model AIMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  toolCalls      Json?
+  tokensIn       Int?
+  tokensOut      Int?
+  createdAt      DateTime @default(now())
+
+  conversation AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model AIUsage {
+  id             String   @id @default(cuid())
+  userId         String
+  conversationId String?
+  model          String
+  totalTokens    Int
+  costMinor      Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation AIConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================================
+// COMMERCE
+// ============================================================
+
+model Booking {
+  id             String        @id @default(cuid())
+  userId         String
+  tripId         String?       @unique
+  reference      String        @unique
+  status         BookingStatus @default(PENDING)
+  totalMinor     Int
+  currency       String        @default("INR")
+  idempotencyKey String        @unique
+  notes          String?
+  confirmedAt    DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip      Trip?         @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  items     BookingItem[]
+  payments  Payment[]
+  refunds   Refund[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([reference])
+  @@index([createdAt])
+}
+
+model BookingItem {
+  id            String          @id @default(cuid())
+  bookingId     String
+  type          BookingItemType
+  refId         String?
+  title         String
+  snapshotJson  Json
+  priceMinor    Int
+  currency      String          @default("INR")
+  createdAt     DateTime        @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([type])
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  bookingId         String
+  provider          String
+  providerRef       String        @unique
+  providerOrderId   String?
+  amountMinor       Int
+  currency          String        @default("INR")
+  status            PaymentStatus @default(CREATED)
+  signatureVerified Boolean       @default(false)
+  rawPayload        Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  booking Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  refunds Refund[]
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([providerRef])
+}
+
+model Refund {
+  id           String       @id @default(cuid())
+  paymentId    String
+  bookingId    String
+  providerRef  String?
+  amountMinor  Int
+  currency     String       @default("INR")
+  reason       String?
+  status       RefundStatus @default(PENDING)
+  rawPayload   Json?
+  completedAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([bookingId])
+  @@index([status])
+}
+
+// ============================================================
+// OPERATIONS
+// ============================================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String?
+  read      Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+model ProviderRequest {
+  id         String       @id @default(cuid())
+  provider   ProviderType
+  endpoint   String
+  status     Int?
+  latencyMs  Int?
+  errorCode  String?
+  createdAt  DateTime     @default(now())
+
+  @@index([provider])
+  @@index([createdAt])
+}
