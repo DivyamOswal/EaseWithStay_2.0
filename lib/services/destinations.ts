@@ -65,3 +65,44 @@ export async function togglePublish(id: string) {
 export async function deleteDestination(id: string) {
   return prisma.destination.delete({ where: { id } });
 }
+
+// ---------- Create / Update inputs ----------
+
+export type CreateDestinationInput = {
+  name: string;
+  slug: string;
+  country: string;
+  region?: string;
+  description?: string;
+  heroImageId?: string;
+  status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+};
+
+export async function createDestination(input: CreateDestinationInput) {
+  const publishedAt = input.status === 'PUBLISHED' ? new Date() : null;
+  return prisma.destination.create({
+    data: {
+      name: input.name,
+      slug: input.slug,
+      country: input.country,
+      region: input.region ?? null,
+      description: input.description ?? null,
+      heroImageId: input.heroImageId ?? null,
+      status: input.status ?? 'DRAFT',
+      publishedAt,
+    },
+  });
+}
+
+export async function getDestinationById(id: string) {
+  return prisma.destination.findUnique({ where: { id } });
+}
+
+export async function slugExists(slug: string, excludeId?: string): Promise<boolean> {
+  const found = await prisma.destination.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+  if (!found) return false;
+  return excludeId ? found.id !== excludeId : true;
+}
