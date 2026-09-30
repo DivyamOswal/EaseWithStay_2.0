@@ -60,7 +60,7 @@ export function DestinationsTable({ initial }: Props) {
       try {
         await togglePublishAction(id);
       } catch {
-        // Revert on failure — refetch on next navigation
+        // Revert on failure  refetch on next navigation
         setRows(initial);
       }
     });

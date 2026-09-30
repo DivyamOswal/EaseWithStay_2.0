@@ -34,7 +34,7 @@ const sections: LegalSection[] = [
 ];
 
 export const metadata = {
-  title: 'Privacy Policy — EaseWithStay',
+  title: 'Privacy Policy  EaseWithStay',
 };
 
 export default function PrivacyPage() {

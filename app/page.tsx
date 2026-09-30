@@ -70,7 +70,7 @@ export default function Home() {
           </h1>
 
           <p className="mt-5 max-w-[440px] text-base leading-relaxed text-[#4B4436]">
-            Describe the trip in your own words — EaseWithStay asks the right follow-up
+            Describe the trip in your own words  EaseWithStay asks the right follow-up
             questions, builds a day-by-day plan, and shows real prices before you book
             anything.
           </p>
@@ -148,7 +148,7 @@ export default function Home() {
           <div className="mb-2.5 font-serif text-2xl italic text-[var(--color-brass)]">01</div>
           <h3 className="mb-2 font-serif text-lg text-[var(--color-pine)]">Say what you want</h3>
           <p className="text-sm leading-relaxed text-[#5B5343]">
-            One sentence is enough. Mention people, dates, budget, or vibe — the AI fills
+            One sentence is enough. Mention people, dates, budget, or vibe  the AI fills
             the gaps by asking.
           </p>
         </div>
@@ -156,7 +156,7 @@ export default function Home() {
           <div className="mb-2.5 font-serif text-2xl italic text-[var(--color-brass)]">02</div>
           <h3 className="mb-2 font-serif text-lg text-[var(--color-pine)]">Review a real plan</h3>
           <p className="text-sm leading-relaxed text-[#5B5343]">
-            Live hotel, flight and activity pricing — not a guess. Swap anything with a
+            Live hotel, flight and activity pricing  not a guess. Swap anything with a
             message.
           </p>
         </div>

@@ -163,8 +163,8 @@ export function DestinationForm({ initialState }: Props) {
           defaultValue="DRAFT"
           className="w-full rounded-lg border border-[var(--color-paper-line)] bg-white px-3.5 py-2.5 text-sm text-[var(--color-pine-2)] outline-none transition focus:border-[var(--color-coral)]"
         >
-          <option value="DRAFT">Draft — not visible to travelers</option>
-          <option value="PUBLISHED">Published — live on the site</option>
+          <option value="DRAFT">Draft  not visible to travelers</option>
+          <option value="PUBLISHED">Published  live on the site</option>
         </select>
       </div>
 

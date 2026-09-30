@@ -23,7 +23,7 @@ const values = [
   {
     icon: '🤝',
     title: 'A real person if it breaks',
-    body: "Support isn't a chatbot loop — a human picks up cancellations and disputes.",
+    body: "Support isn't a chatbot loop  a human picks up cancellations and disputes.",
   },
 ];
 
@@ -43,7 +43,7 @@ export default function AboutPage() {
         <p className="mt-6 text-base leading-relaxed text-[#4B4436]">
           EaseWithStay started with a simple frustration: planning a family trip meant one
           tab for flights, another for hotels, a spreadsheet for budget, and a dozen reviews
-          to sift through — and most of it went stale before you'd even booked anything. We
+          to sift through  and most of it went stale before you'd even booked anything. We
           build one conversation that does all of that, with real prices and a plan you can
           actually trust.
         </p>

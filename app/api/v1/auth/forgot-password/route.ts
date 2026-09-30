@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // TODO: Phase 17 — send email via Nodemailer + BullMQ
+  // TODO: Phase 17  send email via Nodemailer + BullMQ
   // For now, log the link so it's testable in dev
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${rawToken}`;
   console.log('[forgot-password] reset link for', email, ':', resetUrl);

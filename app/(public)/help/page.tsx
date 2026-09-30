@@ -16,7 +16,7 @@ const categories = [
 const faqs = [
   {
     q: 'Can I change my travel dates after booking?',
-    a: "Yes — go to Trip Details → Modify booking. Date changes are subject to the hotel and airline's own change policy, and any fare or rate difference will be shown before you confirm.",
+    a: "Yes  go to Trip Details → Modify booking. Date changes are subject to the hotel and airline's own change policy, and any fare or rate difference will be shown before you confirm.",
   },
   {
     q: 'How long do refunds take?',
@@ -24,11 +24,11 @@ const faqs = [
   },
   {
     q: 'Why did the AI ask so many questions before planning my trip?',
-    a: 'A handful of clarifying questions — dates, traveler count, budget — lets the planner search real inventory instead of guessing, so the plan you see is bookable, not illustrative.',
+    a: 'A handful of clarifying questions  dates, traveler count, budget  lets the planner search real inventory instead of guessing, so the plan you see is bookable, not illustrative.',
   },
   {
     q: "Is my payment information stored on EaseWithStay's servers?",
-    a: 'No — card and UPI details are handled directly by our payment partner. We only store a payment reference and status, never your full card number.',
+    a: 'No  card and UPI details are handled directly by our payment partner. We only store a payment reference and status, never your full card number.',
   },
   {
     q: 'Are the prices shown the final prices?',

@@ -99,7 +99,7 @@ const faqs = [
   },
   {
     q: 'Is there a free trial?',
-    a: 'Voyager comes with a 14-day free trial. No card required to start — you only pay if you decide to continue.',
+    a: 'Voyager comes with a 14-day free trial. No card required to start  you only pay if you decide to continue.',
   },
 ];
 

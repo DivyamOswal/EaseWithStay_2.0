@@ -16,7 +16,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: 'EaseWithStay — AI trip planning and booking',
+  title: 'EaseWithStay  AI trip planning and booking',
   description: 'Describe the trip. We build the itinerary and book it.',
 };
 

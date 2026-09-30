@@ -27,7 +27,7 @@ export const destinations: Destination[] = [
     budget: '₹18K–24K / person',
     flightTime: '~1h 20m from Mumbai',
     overview:
-      "North Goa's beaches, family-friendly resorts and easy flight connections make it one of the most booked short trips on EaseWithStay — especially with kids, given the number of shallow, calm beaches near Calangute and Candolim.",
+      "North Goa's beaches, family-friendly resorts and easy flight connections make it one of the most booked short trips on EaseWithStay  especially with kids, given the number of shallow, calm beaches near Calangute and Candolim.",
     goodFor: ['Family trips', 'Beaches', 'Short weekends', 'Food'],
     activities:
       'Dolphin-watching cruises, spice plantation tours, water sports at Baga, sunset dinner cruises, and heritage walks through Old Goa.',

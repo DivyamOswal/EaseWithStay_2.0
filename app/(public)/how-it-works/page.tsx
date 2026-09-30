@@ -46,7 +46,7 @@ export default function HowItWorksPage() {
           From one sentence to a booked trip.
         </h1>
         <p className="mt-4 text-base leading-relaxed text-[#4B4436]">
-          Every trip on EaseWithStay follows the same transparent path — nothing books
+          Every trip on EaseWithStay follows the same transparent path  nothing books
           itself without your say-so.
         </p>
       </section>

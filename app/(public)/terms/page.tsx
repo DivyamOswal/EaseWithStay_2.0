@@ -34,7 +34,7 @@ const sections: LegalSection[] = [
 ];
 
 export const metadata = {
-  title: 'Terms of Service — EaseWithStay',
+  title: 'Terms of Service  EaseWithStay',
 };
 
 export default function TermsPage() {

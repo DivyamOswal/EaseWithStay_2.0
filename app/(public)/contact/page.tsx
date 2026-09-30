@@ -29,7 +29,7 @@ export default function ContactPage() {
             We&rsquo;re here if something&rsquo;s wrong.
           </h1>
           <p className="mt-4 text-sm leading-relaxed text-[#7A7261]">
-            For an existing booking, have your reference code ready — it speeds things up
+            For an existing booking, have your reference code ready  it speeds things up
             considerably.
           </p>
 

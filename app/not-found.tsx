@@ -10,7 +10,7 @@ export default function NotFound() {
       <main className="flex min-h-[70vh] items-center justify-center px-6 py-24">
         <div className="max-w-xl text-center">
           <p className="mb-4 font-serif text-sm italic text-[var(--color-brass)]">
-            — a small detour
+             a small detour
           </p>
 
           <h1 className="font-serif text-6xl leading-none text-[var(--color-pine)] sm:text-7xl">
