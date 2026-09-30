@@ -16,7 +16,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: 'EaseWithStay - AI trip planning and booking',
+  title: 'EaseWithStay — AI trip planning and booking',
   description: 'Describe the trip. We build the itinerary and book it.',
 };
 
@@ -27,7 +27,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
-      <body className="font-sans antialiased bg-[#FBF6EC] text-[#1E2430]">
+      <body
+        className="font-sans antialiased bg-[#FBF6EC] text-[#1E2430]"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

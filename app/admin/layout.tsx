@@ -22,7 +22,6 @@ export default async function AdminLayout({
 
   return (
     <div className="grid min-h-screen grid-cols-[230px_1fr] bg-[#FEFDFA]">
-      {/* Sidebar */}
       <aside className="flex flex-col bg-[var(--color-pine)] px-4 py-6 text-[var(--color-sand)]">
         <Link
           href="/admin"
@@ -65,7 +64,6 @@ export default async function AdminLayout({
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="overflow-x-auto">{children}</main>
     </div>
   );
