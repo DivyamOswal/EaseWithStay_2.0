@@ -2,19 +2,11 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Eye,
-  EyeOff,
-  Trash2,
-} from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Eye, EyeOff, Trash2 } from 'lucide-react';
 import type { DestinationRow } from '@/lib/services/destinations';
-import {
-  togglePublishAction,
-  deleteDestinationAction,
-} from '@/app/admin/destinations/actions';
+import { togglePublishAction, deleteDestinationAction } from '@/app/admin/destinations/actions';
+import { Pencil } from 'lucide-react';
+import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 
 type Props = { initial: DestinationRow[] };
 
@@ -30,6 +22,7 @@ export function DestinationsTable({ initial }: Props) {
   const [status, setStatus] = useState<'ALL' | 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'>('ALL');
   const [pending, startTransition] = useTransition();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const filtered = rows.filter((r) => {
     const matchesStatus = status === 'ALL' || r.status === status;
@@ -66,18 +59,19 @@ export function DestinationsTable({ initial }: Props) {
     });
   }
 
-  function handleDelete(id: string, name: string) {
-    setOpenMenu(null);
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
-    setRows((prev) => prev.filter((r) => r.id !== id));
-    startTransition(async () => {
-      try {
-        await deleteDestinationAction(id);
-      } catch {
-        setRows(initial);
-      }
-    });
-  }
+  function handleDeleteConfirmed() {
+  if (!deleteTarget) return;
+  const { id } = deleteTarget;
+  setDeleteTarget(null);
+  setRows((prev) => prev.filter((r) => r.id !== id));
+  startTransition(async () => {
+    try {
+      await deleteDestinationAction(id);
+    } catch {
+      setRows(initial);
+    }
+  });
+}
 
   return (
     <>
@@ -87,21 +81,21 @@ export function DestinationsTable({ initial }: Props) {
           <div className="relative max-w-xs flex-1">
             <Search
               size={15}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8270]"
+              className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#8A8270]"
             />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search destinations…"
-              className="w-full rounded-lg border border-[var(--color-paper-line)] bg-white py-2 pl-9 pr-3 text-sm outline-none transition focus:border-[var(--color-coral)]"
+              className="w-full rounded-lg border border-[var(--color-paper-line)] bg-white py-2 pr-3 pl-9 text-sm transition outline-none focus:border-[var(--color-coral)]"
             />
           </div>
 
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as typeof status)}
-            className="rounded-lg border border-[var(--color-paper-line)] bg-white px-3 py-2 text-sm text-[var(--color-pine-2)] outline-none transition focus:border-[var(--color-coral)]"
+            className="rounded-lg border border-[var(--color-paper-line)] bg-white px-3 py-2 text-sm text-[var(--color-pine-2)] transition outline-none focus:border-[var(--color-coral)]"
           >
             <option value="ALL">All statuses</option>
             <option value="PUBLISHED">Published</option>
@@ -145,16 +139,16 @@ export function DestinationsTable({ initial }: Props) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[var(--color-paper-line)] bg-[#FEFDFA]">
-                <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-[#8A8270]">
+                <th className="px-5 py-3 text-left text-[11px] font-bold tracking-wide text-[#8A8270] uppercase">
                   Name
                 </th>
-                <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-[#8A8270]">
+                <th className="px-5 py-3 text-left text-[11px] font-bold tracking-wide text-[#8A8270] uppercase">
                   Country
                 </th>
-                <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-[#8A8270]">
+                <th className="px-5 py-3 text-left text-[11px] font-bold tracking-wide text-[#8A8270] uppercase">
                   Status
                 </th>
-                <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-[#8A8270]">
+                <th className="px-5 py-3 text-left text-[11px] font-bold tracking-wide text-[#8A8270] uppercase">
                   Updated
                 </th>
                 <th className="px-5 py-3"></th>
@@ -167,17 +161,13 @@ export function DestinationsTable({ initial }: Props) {
                   className="border-b border-[var(--color-paper-line)] last:border-0 hover:bg-[#FEFDFA]"
                 >
                   <td className="px-5 py-3.5">
-                    <div className="text-sm font-semibold text-[var(--color-pine)]">
-                      {r.name}
-                    </div>
+                    <div className="text-sm font-semibold text-[var(--color-pine)]">{r.name}</div>
                     <div className="text-xs text-[#8A8270]">/{r.slug}</div>
                   </td>
-                  <td className="px-5 py-3.5 text-sm text-[var(--color-pine-2)]">
-                    {r.country}
-                  </td>
+                  <td className="px-5 py-3.5 text-sm text-[var(--color-pine-2)]">{r.country}</td>
                   <td className="px-5 py-3.5">
                     <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${statusStyles[r.status]}`}
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-[10.5px] font-bold tracking-wide uppercase ${statusStyles[r.status]}`}
                     >
                       {r.status}
                     </span>
@@ -192,20 +182,22 @@ export function DestinationsTable({ initial }: Props) {
                   <td className="relative px-5 py-3.5 text-right">
                     <button
                       type="button"
-                      onClick={() =>
-                        setOpenMenu(openMenu === r.id ? null : r.id)
-                      }
+                      onClick={() => setOpenMenu(openMenu === r.id ? null : r.id)}
                       className="rounded-lg p-1.5 text-[#8A8270] transition hover:bg-[#F0EBDD] hover:text-[var(--color-pine)]"
                     >
                       <MoreHorizontal size={16} />
                     </button>
                     {openMenu === r.id && (
                       <>
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={() => setOpenMenu(null)}
-                        />
-                        <div className="absolute right-3 top-full z-20 mt-1 w-44 rounded-lg border border-[var(--color-paper-line)] bg-white py-1 shadow-lg">
+                        <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
+                        <div className="absolute top-full right-3 z-20 mt-1 w-44 rounded-lg border border-[var(--color-paper-line)] bg-white py-1 shadow-lg">
+                          <Link
+                            href={`/admin/destinations/${r.id}/edit`}
+                            className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-[var(--color-pine-2)] transition hover:bg-[#FEFDFA]"
+                          >
+                            <Pencil size={14} />
+                            Edit
+                          </Link>
                           <button
                             type="button"
                             onClick={() => handleToggle(r.id)}
@@ -226,7 +218,10 @@ export function DestinationsTable({ initial }: Props) {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDelete(r.id, r.name)}
+                            onClick={() => {
+  setOpenMenu(null);
+  setDeleteTarget({ id: r.id, name: r.name });
+}}
                             disabled={pending}
                             className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-[#C94E2C] transition hover:bg-[#FDEDE7] disabled:opacity-50"
                           >
@@ -234,6 +229,14 @@ export function DestinationsTable({ initial }: Props) {
                             Delete
                           </button>
                         </div>
+                        <ConfirmDialog
+  open={!!deleteTarget}
+  title={`Delete "${deleteTarget?.name ?? ''}"?`}
+  description="This will permanently remove the destination and any hotels, activities, or documents linked to it. This cannot be undone."
+  confirmLabel="Delete destination"
+  onConfirm={handleDeleteConfirmed}
+  onCancel={() => setDeleteTarget(null)}
+/>
                       </>
                     )}
                   </td>

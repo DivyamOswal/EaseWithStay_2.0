@@ -24,7 +24,7 @@ export default function NewDestinationPage() {
         </p>
       </div>
 
-      <DestinationForm initialState={{ ok: false }} />
+      <DestinationForm mode="create" />
     </div>
   );
 }

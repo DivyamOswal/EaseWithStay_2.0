@@ -5,9 +5,12 @@ import { useFormStatus } from 'react-dom';
 import Link from 'next/link';
 import slugify from 'slugify';
 import type { CreateDestinationState } from '@/app/admin/destinations/actions';
-import { createDestinationAction } from '@/app/admin/destinations/actions';
+import {
+  createDestinationAction,
+  updateDestinationAction,
+} from '@/app/admin/destinations/actions';
 
-function SubmitButton() {
+function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -15,32 +18,52 @@ function SubmitButton() {
       disabled={pending}
       className="rounded-lg bg-[var(--color-coral)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-coral-dark)] disabled:opacity-50"
     >
-      {pending ? 'Saving…' : 'Save destination'}
+      {pending ? 'Saving…' : label}
     </button>
   );
 }
 
-type Props = {
-  initialState: CreateDestinationState;
+export type DestinationFormValues = {
+  id?: string;
+  name: string;
+  slug: string;
+  country: string;
+  region: string;
+  heroImageId: string;
+  description: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 };
 
-export function DestinationForm({ initialState }: Props) {
-  const [state, setState] = useState(initialState);
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugTouched, setSlugTouched] = useState(false);
+type Props = {
+  mode: 'create' | 'edit';
+  initialValues?: DestinationFormValues;
+  initialState?: CreateDestinationState;
+};
+
+export function DestinationForm({
+  mode,
+  initialValues,
+  initialState,
+}: Props) {
+  const [state, setState] = useState<CreateDestinationState>(
+    initialState ?? { ok: false },
+  );
+  const [name, setName] = useState(initialValues?.name ?? '');
+  const [slug, setSlug] = useState(initialValues?.slug ?? '');
+  const [slugTouched, setSlugTouched] = useState(mode === 'edit');
 
   function handleNameChange(value: string) {
     setName(value);
     if (!slugTouched) {
-      setSlug(
-        slugify(value, { lower: true, strict: true, trim: true }),
-      );
+      setSlug(slugify(value, { lower: true, strict: true, trim: true }));
     }
   }
 
   async function handleSubmit(formData: FormData) {
-    const next = await createDestinationAction(state, formData);
+    const next =
+      mode === 'create'
+        ? await createDestinationAction(state, formData)
+        : await updateDestinationAction(initialValues!.id!, state, formData);
     setState(next);
   }
 
@@ -90,7 +113,7 @@ export function DestinationForm({ initialState }: Props) {
           />
         </div>
         <p className="mt-1 text-xs text-[#8A8270]">
-          Auto-generated from name. Only lowercase letters, numbers, hyphens.
+          Only lowercase letters, numbers, hyphens.
         </p>
         {fieldError('slug') && (
           <p className="mt-1 text-xs text-[#C94E2C]">{fieldError('slug')}</p>
@@ -105,6 +128,7 @@ export function DestinationForm({ initialState }: Props) {
           </label>
           <input
             name="country"
+            defaultValue={initialValues?.country ?? ''}
             placeholder="India"
             className="w-full rounded-lg border border-[var(--color-paper-line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--color-coral)]"
           />
@@ -118,26 +142,24 @@ export function DestinationForm({ initialState }: Props) {
           </label>
           <input
             name="region"
+            defaultValue={initialValues?.region ?? ''}
             placeholder="West coast · Konkan region"
             className="w-full rounded-lg border border-[var(--color-paper-line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--color-coral)]"
           />
         </div>
       </div>
 
-      {/* Hero image URL */}
+      {/* Hero image */}
       <div>
         <label className="mb-1.5 block text-xs font-semibold text-[var(--color-pine-2)]">
           Hero image
         </label>
         <input
           name="heroImageId"
+          defaultValue={initialValues?.heroImageId ?? ''}
           placeholder="/images/goa.jpg or https://ik.imagekit.io/..."
           className="w-full rounded-lg border border-[var(--color-paper-line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--color-coral)]"
         />
-        <p className="mt-1 text-xs text-[#8A8270]">
-          For now, use a path from <code>public/images/</code>. Phase 7 adds ImageKit
-          uploads.
-        </p>
       </div>
 
       {/* Description */}
@@ -147,6 +169,7 @@ export function DestinationForm({ initialState }: Props) {
         </label>
         <textarea
           name="description"
+          defaultValue={initialValues?.description ?? ''}
           rows={4}
           placeholder="A short paragraph shown on the destination details page."
           className="w-full resize-none rounded-lg border border-[var(--color-paper-line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--color-coral)]"
@@ -160,17 +183,17 @@ export function DestinationForm({ initialState }: Props) {
         </label>
         <select
           name="status"
-          defaultValue="DRAFT"
+          defaultValue={initialValues?.status ?? 'DRAFT'}
           className="w-full rounded-lg border border-[var(--color-paper-line)] bg-white px-3.5 py-2.5 text-sm text-[var(--color-pine-2)] outline-none transition focus:border-[var(--color-coral)]"
         >
-          <option value="DRAFT">Draft  not visible to travelers</option>
-          <option value="PUBLISHED">Published  live on the site</option>
+          <option value="DRAFT">Draft — not visible to travelers</option>
+          <option value="PUBLISHED">Published — live on the site</option>
         </select>
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-3 border-t border-[var(--color-paper-line)] pt-5">
-        <SubmitButton />
+        <SubmitButton label={mode === 'create' ? 'Save destination' : 'Save changes'} />
         <Link
           href="/admin/destinations"
           className="rounded-lg border-[1.5px] border-[var(--color-paper-line)] px-5 py-2.5 text-sm font-semibold text-[var(--color-pine-2)] transition hover:border-[var(--color-coral)] hover:text-[var(--color-coral)]"

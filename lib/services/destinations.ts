@@ -106,3 +106,30 @@ export async function slugExists(slug: string, excludeId?: string): Promise<bool
   if (!found) return false;
   return excludeId ? found.id !== excludeId : true;
 }
+
+export async function updateDestination(
+  id: string,
+  input: CreateDestinationInput,
+) {
+  const publishedAt =
+    input.status === 'PUBLISHED'
+      ? (await prisma.destination.findUnique({
+          where: { id },
+          select: { publishedAt: true },
+        }))?.publishedAt ?? new Date()
+      : null;
+
+  return prisma.destination.update({
+    where: { id },
+    data: {
+      name: input.name,
+      slug: input.slug,
+      country: input.country,
+      region: input.region ?? null,
+      description: input.description ?? null,
+      heroImageId: input.heroImageId ?? null,
+      status: input.status ?? 'DRAFT',
+      publishedAt,
+    },
+  });
+}
