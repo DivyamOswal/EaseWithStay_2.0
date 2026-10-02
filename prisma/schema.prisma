@@ -248,6 +248,7 @@ model DestinationDocument {
   status        DocumentStatus     @default(PENDING)
   version       Int                @default(1)
   errorMessage  String?
+  parsedContent String?            @db.Text
   publishedAt   DateTime?
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
