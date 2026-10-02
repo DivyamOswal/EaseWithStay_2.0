@@ -261,13 +261,13 @@ model DestinationDocument {
 }
 
 model DocumentChunk {
-  id         String                       @id @default(cuid())
+  id         String                      @id @default(cuid())
   documentId String
   content    String
   tokenCount Int?
   order      Int
-  embedding  Unsupported("vector(1536)")?
-  createdAt  DateTime                     @default(now())
+  embedding  Unsupported("vector(384)")?
+  createdAt  DateTime                    @default(now())
 
   document DestinationDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
