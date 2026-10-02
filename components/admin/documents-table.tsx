@@ -1,15 +1,21 @@
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Search,
   MoreHorizontal,
   Trash2,
   ExternalLink,
   FileText,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import type { DocumentRow } from '@/lib/services/documents';
-import { deleteDocumentAction } from '@/app/admin/documents/actions';
+import {
+  deleteDocumentAction,
+  processDocumentAction,
+} from '@/app/admin/documents/actions';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 
 type Props = {
@@ -26,15 +32,24 @@ const statusStyles: Record<string, string> = {
 };
 
 export function DocumentsTable({ initial, headerAction }: Props) {
+  const router = useRouter();
   const [rows, setRows] = useState(initial);
-  useEffect(() => {
-  setRows(initial);
-}, [initial]);
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<'ALL' | 'PENDING' | 'PROCESSING' | 'INDEXED' | 'FAILED' | 'ARCHIVED'>('ALL');
+  const [status, setStatus] = useState<
+    'ALL' | 'PENDING' | 'PROCESSING' | 'INDEXED' | 'FAILED' | 'ARCHIVED'
+  >('ALL');
   const [pending, startTransition] = useTransition();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRows(initial);
+  }, [initial]);
 
   const filtered = rows.filter((r) => {
     const matchesStatus = status === 'ALL' || r.status === status;
@@ -58,6 +73,35 @@ export function DocumentsTable({ initial, headerAction }: Props) {
         setRows(initial);
       }
     });
+  }
+
+  async function handleProcess(id: string) {
+    setOpenMenu(null);
+    setError(null);
+    setProcessingId(id);
+
+    // Optimistically flip to PROCESSING
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, status: 'PROCESSING' as const } : r,
+      ),
+    );
+
+    const res = await processDocumentAction(id);
+    setProcessingId(null);
+
+    if (!res.ok) {
+      setError(res.error ?? 'Ingestion failed');
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, status: 'FAILED' as const } : r,
+        ),
+      );
+      return;
+    }
+
+    // Server marked it PROCESSING; refresh to sync
+    router.refresh();
   }
 
   return (
@@ -92,6 +136,12 @@ export function DocumentsTable({ initial, headerAction }: Props) {
         </div>
         {headerAction}
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-[#F5CDB4] bg-[#FDEDE7] px-4 py-3 text-sm text-[#C94E2C]">
+          {error}
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[var(--color-paper-line)] bg-white p-12 text-center">
@@ -165,7 +215,9 @@ export function DocumentsTable({ initial, headerAction }: Props) {
                   <td className="relative px-5 py-3.5 text-right">
                     <button
                       type="button"
-                      onClick={() => setOpenMenu(openMenu === r.id ? null : r.id)}
+                      onClick={() =>
+                        setOpenMenu(openMenu === r.id ? null : r.id)
+                      }
                       className="rounded-lg p-1.5 text-[#8A8270] transition hover:bg-[#F0EBDD] hover:text-[var(--color-pine)]"
                     >
                       <MoreHorizontal size={16} />
@@ -177,6 +229,33 @@ export function DocumentsTable({ initial, headerAction }: Props) {
                           onClick={() => setOpenMenu(null)}
                         />
                         <div className="absolute right-3 top-full z-20 mt-1 w-48 rounded-lg border border-[var(--color-paper-line)] bg-white py-1 shadow-lg">
+                          {(r.status === 'PENDING' ||
+                            r.status === 'FAILED' ||
+                            r.status === 'PROCESSING') && (
+                            <button
+                              type="button"
+                              onClick={() => handleProcess(r.id)}
+                              disabled={pending || processingId === r.id}
+                              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-[var(--color-lagoon)] transition hover:bg-[#FEFDFA] disabled:opacity-50"
+                            >
+                              {processingId === r.id ? (
+                                <>
+                                  <RefreshCw size={14} className="animate-spin" />
+                                  Processing…
+                                </>
+                              ) : r.status === 'PROCESSING' ? (
+                                <>
+                                  <RefreshCw size={14} />
+                                  Re-process
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles size={14} />
+                                  Process
+                                </>
+                              )}
+                            </button>
+                          )}
                           {r.fileUrl && (
                             <a
                               href={r.fileUrl}

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireAdminPage } from '@/lib/auth/admin-guard';
 import { deleteDocument, getDocumentById } from '@/lib/services/documents';
 import { deleteFromImageKit } from '@/lib/storage/imagekit';
+import { ingestDocument } from '@/lib/services/ingestion';
 
 export async function deleteDocumentAction(id: string) {
   await requireAdminPage();
@@ -25,4 +26,17 @@ export async function deleteDocumentAction(id: string) {
   await deleteDocument(id);
 
   revalidatePath('/admin/documents');
+}
+
+export async function processDocumentAction(id: string) {
+  await requireAdminPage();
+
+  try {
+    await ingestDocument(id);
+    revalidatePath('/admin/documents');
+    return { ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Ingestion failed';
+    return { ok: false, error: message };
+  }
 }
