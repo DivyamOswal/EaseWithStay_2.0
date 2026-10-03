@@ -1,0 +1,4 @@
+$json = @'
+{"userPrompt":"5-day Goa family trip for 2 adults and 2 kids under 90000 rupees with beaches, a pool, and kid-friendly food"}
+'@
+[System.IO.File]::WriteAllText("$PWD\plan.json", $json, [System.Text.Encoding]::UTF8)
