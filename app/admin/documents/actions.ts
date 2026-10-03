@@ -5,6 +5,7 @@ import { requireAdminPage } from '@/lib/auth/admin-guard';
 import { deleteDocument, getDocumentById } from '@/lib/services/documents';
 import { deleteFromImageKit } from '@/lib/storage/imagekit';
 import { ingestDocument } from '@/lib/services/ingestion';
+import { indexDocument } from '@/lib/rag/index-document';
 
 export async function deleteDocumentAction(id: string) {
   await requireAdminPage();
@@ -37,6 +38,18 @@ export async function processDocumentAction(id: string) {
     return { ok: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Ingestion failed';
+    return { ok: false, error: message };
+  }
+}
+
+export async function indexDocumentAction(id: string) {
+  await requireAdminPage();
+  try {
+    const result = await indexDocument(id);
+    revalidatePath('/admin/documents');
+    return { ok: true, ...result };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Indexing failed';
     return { ok: false, error: message };
   }
 }
