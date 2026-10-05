@@ -2,7 +2,7 @@ import 'server-only';
 import { retrieveTravelKnowledge } from '@/lib/rag/retrieve';
 
 export type BuiltContext = {
-  chunks: { title: string; content: string; similarity: number }[];
+  chunks: { documentTitle: string; content: string; similarity: number }[];
   asText: string;
 };
 

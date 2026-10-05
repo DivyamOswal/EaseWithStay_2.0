@@ -3,9 +3,7 @@ import ImageKit from '@imagekit/nodejs';
 import { env } from '@/lib/env';
 
 export const imagekit = new ImageKit({
-  publicKey: env.IMAGEKIT_PUBLIC_KEY,
   privateKey: env.IMAGEKIT_PRIVATE_KEY,
-  urlEndpoint: env.IMAGEKIT_URL_ENDPOINT,
 });
 
 /**
@@ -32,6 +30,10 @@ export async function uploadToImageKit(options: {
     useUniqueFileName: true,
     tags: options.tags,
   });
+
+  if (!response.fileId || !response.url || !response.filePath || !response.name) {
+    throw new Error('ImageKit upload response missing required fields');
+  }
 
   return {
     fileId: response.fileId,

@@ -1,19 +1,25 @@
 import 'server-only';
-import { pipeline } from '@huggingface/transformers';
+import {
+  pipeline,
+  type FeatureExtractionPipeline,
+} from '@huggingface/transformers';
 
 const MODEL_ID = 'Xenova/all-MiniLM-L6-v2';
 
 declare global {
   // eslint-disable-next-line no-var
-  var __embedPipeline: Awaited<ReturnType<typeof pipeline>> | undefined;
+  var __embedPipeline: FeatureExtractionPipeline | undefined;
 }
 
-async function getPipeline() {
+async function getPipeline(): Promise<FeatureExtractionPipeline> {
   if (globalThis.__embedPipeline) return globalThis.__embedPipeline;
 
   console.log('[rag] loading embedding model (first run ~30s)…');
 
-  const pipe = await pipeline('feature-extraction', MODEL_ID);
+  const pipe = (await pipeline(
+    'feature-extraction',
+    MODEL_ID,
+  )) as FeatureExtractionPipeline;
 
   globalThis.__embedPipeline = pipe;
   console.log('[rag] embedding model ready');
