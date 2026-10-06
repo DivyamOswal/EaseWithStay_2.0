@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ChevronDown, User, MapPin, Shield, LogOut } from 'lucide-react';
 
 export type SessionUser = {
@@ -13,7 +12,6 @@ export type SessionUser = {
 };
 
 export function UserMenu({ user }: { user: SessionUser }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -42,12 +40,14 @@ export function UserMenu({ user }: { user: SessionUser }) {
     setLoggingOut(true);
     try {
       await fetch('/api/v1/auth/logout', { method: 'POST' });
-      router.push('/');
-      router.refresh();
-    } finally {
-      setLoggingOut(false);
-      setOpen(false);
+    } catch (err) {
+      console.error('[logout]', err);
     }
+    // Hard navigation with cache-bust query so the browser is guaranteed
+    // to reload. `router.push('/')` would leave SiteNav mounted with a
+    // stale session; `window.location.href = '/'` is a no-op when the
+    // current URL is already '/'.
+    window.location.href = '/?logged_out=' + Date.now();
   }
 
   const initials =
