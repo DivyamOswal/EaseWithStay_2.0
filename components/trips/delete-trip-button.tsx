@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
-import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 
 export function DeleteTripButton({
   tripId,
@@ -16,15 +15,29 @@ export function DeleteTripButton({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && open && !pending) setOpen(false);
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, pending]);
+
   function handleConfirm() {
-    setOpen(false);
+    if (pending) return;
     startTransition(async () => {
-      const res = await fetch(`/api/v1/trips/${tripId}`, { method: 'DELETE' });
-      if (res.ok) {
-        router.push('/trips');
-        router.refresh();
-      } else {
-        alert('Could not delete this trip.');
+      try {
+        const res = await fetch(`/api/v1/trips/${tripId}`, { method: 'DELETE' });
+        if (res.ok) {
+          router.push('/trips');
+          router.refresh();
+        } else {
+          alert('Could not delete this trip.');
+          setOpen(false);
+        }
+      } catch {
+        alert('Network error. Please try again.');
+        setOpen(false);
       }
     });
   }
@@ -41,14 +54,43 @@ export function DeleteTripButton({
         {pending ? 'Deleting…' : 'Delete'}
       </button>
 
-      <ConfirmDialog
-        open={open}
-        title={`Delete "${tripTitle}"?`}
-        description="This will permanently remove the trip and its itinerary. This cannot be undone."
-        confirmLabel="Delete trip"
-        onConfirm={handleConfirm}
-        onCancel={() => setOpen(false)}
-      />
+      {open && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => !pending && setOpen(false)}
+          />
+
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-[var(--color-paper-line)] bg-white p-6 shadow-xl">
+            <h2 className="font-serif text-lg text-[var(--color-pine)]">
+              Delete &ldquo;{tripTitle}&rdquo;?
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-[#5B5343]">
+              This will permanently remove the trip and its itinerary. This cannot
+              be undone.
+            </p>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                disabled={pending}
+                className="rounded-lg border-[1.5px] border-[var(--color-paper-line)] px-4 py-2.5 text-sm font-semibold text-[var(--color-pine-2)] transition hover:border-[var(--color-coral)] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirm}
+                disabled={pending}
+                className="rounded-lg bg-[#C94E2C] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#A83C1F] disabled:opacity-50"
+              >
+                {pending ? 'Deleting…' : 'Delete trip'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
