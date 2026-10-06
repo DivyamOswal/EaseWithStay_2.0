@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { SiteNav } from '@/components/layout/site-nav';
 import { SiteFooter } from '@/components/layout/site-footer';
+import { getCurrentUser } from '@/lib/auth';
 
 const popularDestinations = [
   { name: 'Goa, India', price: 'From ₹21,000 / person', img: '/images/goa.jpg' },
@@ -51,7 +52,10 @@ const postcards = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const user = await getCurrentUser();
+  const plannerHref = user ? '/planner' : '/register';
+
   return (
     <>
       <SiteNav />
@@ -70,7 +74,7 @@ export default function Home() {
           </h1>
 
           <p className="mt-5 max-w-[440px] text-base leading-relaxed text-[#4B4436]">
-            Describe the trip in your own words  EaseWithStay asks the right follow-up
+            Describe the trip in your own words — EaseWithStay asks the right follow-up
             questions, builds a day-by-day plan, and shows real prices before you book
             anything.
           </p>
@@ -91,7 +95,7 @@ export default function Home() {
                 </span>
               </div>
               <Link
-                href="/register"
+                href={plannerHref}
                 className="rounded-lg bg-[var(--color-coral)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--color-coral-dark)]"
               >
                 Plan my trip
@@ -103,7 +107,7 @@ export default function Home() {
             {chips.map((c) => (
               <Link
                 key={c}
-                href="/register"
+                href={plannerHref}
                 className="rounded-full border border-[var(--color-paper-line)] bg-white px-4 py-2 text-xs text-[var(--color-pine-2)] transition hover:border-[var(--color-coral)] hover:text-[var(--color-coral)]"
               >
                 {c}
@@ -148,7 +152,7 @@ export default function Home() {
           <div className="mb-2.5 font-serif text-2xl italic text-[var(--color-brass)]">01</div>
           <h3 className="mb-2 font-serif text-lg text-[var(--color-pine)]">Say what you want</h3>
           <p className="text-sm leading-relaxed text-[#5B5343]">
-            One sentence is enough. Mention people, dates, budget, or vibe  the AI fills
+            One sentence is enough. Mention people, dates, budget, or vibe — the AI fills
             the gaps by asking.
           </p>
         </div>
@@ -156,7 +160,7 @@ export default function Home() {
           <div className="mb-2.5 font-serif text-2xl italic text-[var(--color-brass)]">02</div>
           <h3 className="mb-2 font-serif text-lg text-[var(--color-pine)]">Review a real plan</h3>
           <p className="text-sm leading-relaxed text-[#5B5343]">
-            Live hotel, flight and activity pricing  not a guess. Swap anything with a
+            Live hotel, flight and activity pricing — not a guess. Swap anything with a
             message.
           </p>
         </div>
