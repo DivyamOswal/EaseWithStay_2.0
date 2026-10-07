@@ -87,11 +87,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return Response.json({
-    ok: true,
-    elapsedMs,
-    contextUsed: result.contextUsed,
-    plan: result.plan,
-    tripId,
-  });
+ return Response.json({
+  ok: true,
+  elapsedMs,
+  contextUsed: result.contextUsed,
+  toolsUsed: result.toolsUsed,
+  plan: result.plan,
+  tripId,
+});
 }
