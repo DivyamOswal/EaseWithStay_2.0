@@ -9,6 +9,7 @@ import {
   createDestinationAction,
   updateDestinationAction,
 } from '@/app/admin/destinations/actions';
+import { ImageUploadField } from './image-upload';
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
@@ -154,11 +155,10 @@ export function DestinationForm({
         <label className="mb-1.5 block text-xs font-semibold text-[var(--color-pine-2)]">
           Hero image
         </label>
-        <input
+        <ImageUploadField
           name="heroImageId"
           defaultValue={initialValues?.heroImageId ?? ''}
-          placeholder="/images/goa.jpg or https://ik.imagekit.io/..."
-          className="w-full rounded-lg border border-[var(--color-paper-line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--color-coral)]"
+          folder="/destination-heroes"
         />
       </div>
 
