@@ -39,63 +39,84 @@ export function PlannerClient({ destinations }: { destinations: DestinationOptio
   }, [messages, loading]);
 
   async function handleSend(promptOverride?: string) {
-    const prompt = (promptOverride ?? input).trim();
-    if (!prompt || loading) return;
+  const prompt = (promptOverride ?? input).trim();
+  if (!prompt || loading) return;
 
-    setError(null);
-    setInput('');
+  setError(null);
+  setInput('');
+
+  setMessages((prev) => [
+    ...prev,
+    { id: `u-${Date.now()}`, role: 'user', content: prompt },
+  ]);
+  setLoading(true);
+
+  const isRefinement = plan !== null;
+
+  try {
+    const endpoint = isRefinement
+      ? '/api/v1/planner/refine'
+      : '/api/v1/planner/generate';
+
+    const body = isRefinement
+      ? {
+          currentPlan: plan,
+          userRequest: prompt,
+          destinationId: destinationId || undefined,
+        }
+      : {
+          userPrompt: prompt,
+          destinationId: destinationId || undefined,
+        };
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      const errMsg =
+        data.error === 'INSUFFICIENT_KNOWLEDGE'
+          ? "I don't have enough information about that destination yet."
+          : isRefinement
+            ? `Could not apply that change: ${data.error ?? 'unknown'}`
+            : `Planning failed: ${data.error ?? 'unknown'}`;
+      setError(errMsg);
+      setMessages((prev) => [
+        ...prev,
+        { id: `a-${Date.now()}`, role: 'ai', content: errMsg },
+      ]);
+      return;
+    }
+
+    setPlan(data.plan);
 
     setMessages((prev) => [
       ...prev,
-      { id: `u-${Date.now()}`, role: 'user', content: prompt },
+      {
+        id: `a-${Date.now()}`,
+        role: 'ai',
+        content: isRefinement
+          ? `Updated. ${data.plan.days.length} days, now estimated at ${formatMoney(data.plan.totalCostMinor, data.plan.currency)}.`
+          : `Here's a draft. ${data.plan.days.length} days in ${data.plan.destination}, estimated at ${formatMoney(data.plan.totalCostMinor, data.plan.currency)}. Want me to adjust anything?`,
+        suggestions: isRefinement
+          ? ['Make it cheaper', 'Add a rest day', 'Swap the hotel']
+          : [
+              'Make day 3 more relaxing',
+              'Reduce the budget',
+              'Add more kid-friendly activities',
+            ],
+      },
     ]);
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/v1/planner/generate', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          userPrompt: prompt,
-          destinationId: destinationId || undefined,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        const errMsg =
-          data.error === 'INSUFFICIENT_KNOWLEDGE'
-            ? "I don't have enough information about that destination yet. Try uploading a travel guide, or pick a different destination."
-            : 'Something went wrong while planning. Please try again.';
-        setError(errMsg);
-        setMessages((prev) => [
-          ...prev,
-          { id: `a-${Date.now()}`, role: 'ai', content: errMsg },
-        ]);
-        return;
-      }
-
-      setPlan(data.plan);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a-${Date.now()}`,
-          role: 'ai',
-          content: `Here's a draft. ${data.plan.days.length} days in ${data.plan.destination}, estimated at ${formatMoney(data.plan.totalCostMinor, data.plan.currency)}. Want me to adjust anything?`,
-          suggestions: [
-            'Make day 3 more relaxing',
-            'Reduce the budget',
-            'Add more kid-friendly activities',
-          ],
-        },
-      ]);
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  } catch {
+    setError('Network error. Please try again.');
+  } finally {
+    setLoading(false);
   }
+}
 
   async function handleSave() {
     if (!plan || saving) return;
