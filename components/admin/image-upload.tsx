@@ -57,10 +57,8 @@ export function ImageUploadField({
 
   return (
     <div>
-      {/* Hidden input that carries the value to the server action */}
       <input type="hidden" name={name} value={url} />
 
-      {/* Native file picker — opens Windows Explorer / macOS Finder */}
       <input
         ref={fileRef}
         type="file"
