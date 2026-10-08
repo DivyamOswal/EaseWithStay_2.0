@@ -6,6 +6,7 @@ import { SiteFooter } from '@/components/layout/site-footer';
 import { TripDayTimeline } from '@/components/trips/trip-day-timeline';
 import { DeleteTripButton } from '@/components/trips/delete-trip-button';
 import { DownloadTripPDFButton } from '@/components/trips/download-trip-pdf-button';
+import { BookTripButton } from '@/components/booking/book-trip-button';
 import { getCurrentUser } from '@/lib/auth';
 import { getTripForUser } from '@/lib/services/trips';
 
@@ -108,6 +109,11 @@ export default async function TripDetailPage({
             </div>
 
             <div className="flex flex-wrap gap-2">
+              <BookTripButton
+                tripId={trip.id}
+                totalMinor={trip.budgetMinor}
+                currency={trip.currency}
+              />
               <DownloadTripPDFButton trip={trip} />
               <DeleteTripButton tripId={trip.id} tripTitle={trip.title} />
             </div>
