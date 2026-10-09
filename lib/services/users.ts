@@ -12,6 +12,7 @@ export type UserRow = {
   createdAt: Date;
 };
 
+// Listing the user
 export async function listUsers(filters?: {
   search?: string;
   role?: UserRole | 'ALL';
