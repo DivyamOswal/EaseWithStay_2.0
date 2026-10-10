@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { nanoid } from 'nanoid';
 import { CalendarCheck, Loader2 } from 'lucide-react';
 
+// Book Trip Button
 export function BookTripButton({
   tripId,
   totalMinor,
