@@ -5,6 +5,7 @@ import { listDestinationsForSelect } from '@/lib/services/activities';
 
 export const dynamic = 'force-dynamic';
 
+// Navigating to new activity page
 export default async function NewActivityPage() {
   const destinations = await listDestinationsForSelect();
   return (
