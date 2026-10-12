@@ -1,6 +1,7 @@
 import { SiteNav } from '@/components/layout/site-nav';
 import { SiteFooter } from '@/components/layout/site-footer';
 
+// Manage the legal section
 export type LegalSection = {
   id: string;
   heading: string;
