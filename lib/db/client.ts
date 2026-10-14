@@ -4,6 +4,7 @@ import { PrismaClient } from '@/lib/generated/prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { env } from '@/lib/env';
 
+// Create a prisma client
 const createPrismaClient = () => {
   const adapter = new PrismaNeon({ connectionString: env.DATABASE_URL });
   return new PrismaClient({
